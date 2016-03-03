@@ -1,0 +1,23 @@
+{% extends "diffusion_main.tex" %}
+{% block title %} {{ title }} {% endblock %}
+{% block tables %}
+
+{% for table,rows in tables.iteritems() %}  
+
+\begin{table}[h!]
+\centering
+	\begin{tabular}{@{} lcccr @{}}
+		\toprule
+		D (cm$^{2}$ s$^{-1}$) & Error & T$_{diff}$  & $\delta$  & Expt. \\
+		\midrule
+		{% for row in rows %} 
+		{{ row }} \\
+                {% endfor %}
+		\bottomrule
+	\end{tabular}
+\caption{ {{table}} }
+\label{}
+\end{table}
+
+{% endfor %}
+{% endblock %}

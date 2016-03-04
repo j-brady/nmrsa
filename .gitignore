@@ -1,0 +1,10 @@
+*.pyc
+*.ipynb
+colormap.py
+diffusion.py
+predictNOEs.py
+proc.py
+productOperators.py
+refNMR.py
+relaxationDispersion.py
+scp_to.py

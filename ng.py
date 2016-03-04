@@ -1,6 +1,7 @@
 import nmrglue as ng
 import numpy as np
 import matplotlib.pyplot as plt
+from colormap import viridis 
 
 """ My nmrglue functions """
 
@@ -27,7 +28,8 @@ class Pseudo2D:
         self.region = self.data[:,start_pts:end_pts+1]
         self.region_ppm = self.ppm_scale[start_pts:end_pts+1]
 
-        colormap = plt.cm.winter_r
+        #colormap = plt.cm.winter_r
+        colormap = viridis
         plt.rcParams['axes.color_cycle'] = [colormap(k) for k in np.linspace(0, 1, self.region.shape[0])]
 
         return self.region,self.region_ppm

@@ -1,6 +1,5 @@
 *.pyc
 *.ipynb
-colormap.py
 diffusion.py
 predictNOEs.py
 proc.py

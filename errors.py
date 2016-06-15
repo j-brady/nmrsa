@@ -3,6 +3,18 @@ import numpy as np
 #import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
+def multiplicative(sigmas):
+    """ list of arrays of sigma values """
+    return np.sqrt(sum([np.square(s) for s in sigmas])) 
+
+def logarithmic(xs):
+    """ List of tuples containing [(array of x,array of sigmas )]"""
+    l = []
+    for x,s in xs:
+        sl = 0.434(s/x)
+        l.append(sl)
+    return np.array(l)
+
 def gen_data(array,sigma=0.1):
     """ 
         Generate array with noise added using np.random.normal
@@ -44,3 +56,9 @@ def monte_carlo(func,x,popt,raw_y_vals,iterations=200):
         fit_params.append(popt)
                                                 
     return np.array(fit_params)
+
+def bootstrap():
+    """ 
+        Generate n data sets by randomly replacing a subset of points.
+        
+    """

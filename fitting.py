@@ -43,6 +43,7 @@ class Diffusion:
         Dtype   -- whether the diffusant is triple (3Q), double (2Q) or single (SQ).
                   This adds a Qfactor of 3,2 or 1 respectively to the (Qfactor*gamma*G*delta)^2 term.
         bipolar -- True/False, if bipolar gradients are used delta=2*delta
+
     """
 
     def __init__(self,T_diff,delta,Dtype="3Q",bipolar=True):
@@ -67,6 +68,15 @@ class Diffusion:
             D  -- diffusion constant
 
             gamma is in units of rad s^-1 G^-1
+
+            returns:
+
+                I0*exp(-1.*D*(Qfactor*G*gamma*delta)^2*(T_diff-delta/3.))
+
+                where G is the gradient strength, Qfactor is the factor associated with the coherence
+                level of the diffusant (i.e. 1,2 or 3), delta is the gradient length (s), T_diff is the
+                diffusion time (s) and D is the diffusion constant (cm^2 s^-1).
+
         """
 
         gamma = 2.67513e4 # rads-1 G-1 (267.513e6 rads-1 T-1 * 1e-4 (Conversion to Gauss))

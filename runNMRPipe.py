@@ -12,6 +12,12 @@ def run_pipe_script(script,dirs):
     for d in dirs:
         print("Processing: %s"%d)
         sp.Popen("%s %s"%(script,d),shell=True).wait()
+
+def run_pipe_2args(script,dirs,arg2):
+    """ Run i.communicate() for each element in proc to see shell output """
+    for d in dirs:
+        print("Processing: %s"%d)
+        sp.Popen("%s %s %s"%(script,d,arg2),shell=True).wait()
         
 #os.path.join ...
 """ |& will pass both stdout and stderr through pipe. Normally stderr is not piped. """ 

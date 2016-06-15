@@ -1,9 +1,30 @@
 import nmrglue as ng
 import numpy as np
 import matplotlib.pyplot as plt
-from colormap import viridis 
+from colormap import viridis,magma,plasma 
 
 """ My nmrglue functions """
+class OneD:
+    
+    def __init__(self,fname="test.ft",spectype="pipe"):
+        if spectype == "pipe":
+
+            self.dic,self.data = ng.pipe.read(fname) 
+            self.uc = ng.pipe.make_uc(self.dic, self.data)
+            self.ppm_scale = self.uc.ppm_scale()
+
+    def get_region(self,start_ppm,end_ppm):
+
+        if start_ppm < end_ppm:
+            start_ppm, end_ppm = end_ppm, start_ppm
+
+        start_pts = self.uc(start_ppm,"ppm")
+        end_pts = self.uc(end_ppm,"ppm")
+        self.region = self.data[start_pts:end_pts+1]
+        self.region_ppm = self.ppm_scale[start_pts:end_pts+1]
+
+        return self.region,self.region_ppm
+
 
 class Pseudo2D:
 
@@ -30,6 +51,8 @@ class Pseudo2D:
 
         #colormap = plt.cm.winter_r
         colormap = viridis
+        #colormap = magma
+        #colormap = plasma
         plt.rcParams['axes.color_cycle'] = [colormap(k) for k in np.linspace(0, 1, self.region.shape[0])]
 
         return self.region,self.region_ppm
@@ -43,6 +66,46 @@ class Pseudo2D:
     def getPPMscale(self):
         return self.ppm_scale
 
+
+class Pseudo3D:
+
+
+    def __init__(self,fname="test.ft",spectype="pipe"):
+
+        if spectype == "pipe":
+            self.dic,self.data = ng.pipe.read(fname)
+            self.uc_w0 = ng.pipe.make_uc(self.dic, self.data,1)
+            self.uc_w1 = ng.pipe.make_uc(self.dic, self.data,2)
+            self.ppm_scale_w0 = self.uc_w0.ppm_scale()
+            self.ppm_scale_w1 = self.uc_w1.ppm_scale()
+
+    def get_region(self,w0,w1):
+        """ 
+            ppm values
+            w1 = [x1,x2]
+            w0 = [y1,y2]
+        """
+        y1,y2 = w0
+        x1,x2 = w1
+        if y1<y2:
+            y1,y2=y2,y1
+        if x1<x2:
+            x1,x2=x2,x1
+
+        #print start_ppm,end_ppm
+        start_pts_w0,end_pts_w0 = self.uc_w0(y1,"ppm"),self.uc_w0(y2,"ppm")
+        start_pts_w1,end_pts_w1 = self.uc_w1(x1,"ppm"),self.uc_w1(x2,"ppm")
+        #print start_pts,end_pts
+        self.region = self.data[:,start_pts_w0:end_pts_w0+1,
+                                  start_pts_w1:end_pts_w1+1]
+
+        self.region_ppm = [self.ppm_scale_w0[start_pts_w0:end_pts_w0+1],
+                           self.ppm_scale_w1[start_pts_w1:end_pts_w1+1]]
+
+        return self.region,self.region_ppm
+
+    def get_data(self):
+        return self.data
 
 
 def normalise(x):

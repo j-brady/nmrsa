@@ -14,8 +14,10 @@ from scipy.optimize import curve_fit
 
 from jinja2 import Environment, PackageLoader
 
-from NMR.diffusion import normalise, get_region, integrate, FitDiffusion 
-from NMR.runNMRPipe import run_pipe_script
+#from NMR.diffusion import normalise, get_region, integrate, FitDiffusion 
+from nmrsa.ng import get_region, normalise, integrate
+from nmrsa.fitting import Diffusion
+from nmrsa.runNMRPipe import run_pipe_script
 
 
 def load_yaml(yaml_file):
@@ -64,7 +66,7 @@ def run_proc(yaml_dict,g2s,pdf):
             plt.rcParams['axes.color_cycle'] = [colormap(i) for i in np.linspace(0, 1, regions.shape[0])]
             fig, axes = plt.subplots(1, 2,figsize=(12,6))
 
-            fit = FitDiffusion(T_diff=v["T_diff"],delta=v["delta"],Dtype=v["type"])
+            fit = Diffusion(T_diff=v["T_diff"],delta=v["delta"],Dtype=v["type"])
             popt, pcov = curve_fit(fit.func, g2s, areas,[I0,D])
             perr = np.sqrt(np.diag(pcov))
             

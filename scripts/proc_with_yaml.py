@@ -14,7 +14,6 @@ from scipy.optimize import curve_fit
 
 from jinja2 import Environment, PackageLoader
 
-#from NMR.diffusion import normalise, get_region, integrate, FitDiffusion 
 from nmrsa.ng import get_region, normalise, integrate
 from nmrsa.fitting import Diffusion
 from nmrsa.runNMRPipe import run_pipe_script
@@ -34,8 +33,9 @@ def write_latex(string,fname="output.tex"):
     with open(fname,"a") as f:
         f.write("%s \n"% string)
 
-def run_proc(yaml_dict,g2s,pdf):
+def run_proc(yaml_dict,g2s,pdf,outfile):
     table = {}
+    outfile.write("D\tErr\tT_diff\tDelta\tFile\n")
     for k,v in yaml_dict.iteritems():
         k = k.replace("_","-")
         print "this is k %s" %k
@@ -66,19 +66,24 @@ def run_proc(yaml_dict,g2s,pdf):
             plt.rcParams['axes.color_cycle'] = [colormap(i) for i in np.linspace(0, 1, regions.shape[0])]
             fig, axes = plt.subplots(1, 2,figsize=(12,6))
 
-            fit = Diffusion(T_diff=v["T_diff"],delta=v["delta"],Dtype=v["type"])
+            fit = Diffusion(T_diff=v["T_diff"],delta=v["delta"],Dtype=v["type"],bipolar=["bipolar"])
             popt, pcov = curve_fit(fit.func, g2s, areas,[I0,D])
             perr = np.sqrt(np.diag(pcov))
             
             tex = " %.3e & $\pm$ %.3e & %.3f & %.3f & %s"%(popt[1],perr[1],v["T_diff"]*1000.,v["delta"]*1000,ft)
+            out = " %.3e\t%.3e\t%.3f\t%.3f\t %s\n"%(popt[1],perr[1],v["T_diff"]*1000.,v["delta"]*1000,ft)
+
             rows.append(tex)
+            outfile.write(out)
             plot_fit(axes,g2s,areas,regions,region_ppm,fit.func,popt)
 
             plt.suptitle("%s:%s\nD=%8.3e $\pm$%.3e"%(k,ft,popt[1],perr[1]))
             pdf.savefig()
             plt.close()
+            
             print "this is k NOW %s"%k
             table[k]=rows
+    outfile.close()
     for k,rows in table.iteritems():
         table[k] = [val.replace("_","-") for val in rows]
     return table
@@ -100,7 +105,7 @@ def plot_fit(axes,g2s,areas,regions,region_ppm,func,popt):
 
 if __name__ == "__main__":
     """ Argument parser """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Script for processing psuedo 2D diffusion data written by Jacob Brady and Rui Huang.")
     parser.add_argument("-i","--params",
             type=str,help="Yaml file containing file names and parameters for processing.",
             default="proc.yaml")
@@ -112,11 +117,16 @@ if __name__ == "__main__":
     parser.add_argument("-t","--title",
             type=str,help="title for result table",
             default="no title")
+    
+    parser.add_argument("-o","--outfile",
+            type=str,help="name of output file",
+            default="output.txt")
 
     args = parser.parse_args()
     yaml_file = args.params
     grad_file = args.gradients
     title = args.title
+    outfile = open(args.outfile,"w")
 
     """ Getting gradients """
     grads = load_yaml(grad_file)
@@ -128,11 +138,11 @@ if __name__ == "__main__":
     """ Getting params and processing """
     params = load_yaml(yaml_file)
     pdf = PdfPages("fits_summary.pdf")
-    table = run_proc(params,g2s,pdf)
+    table = run_proc(params,g2s,pdf,outfile)
     pdf.close()
     
     """ Making results table """
-    env = Environment(loader=PackageLoader('NMR', 'templates'))
+    env = Environment(loader=PackageLoader('nmrsa', 'templates'))
     temp = env.get_template("diffusion_table.tex")
     oname = "summary.tex"
     out = open(oname,'w')

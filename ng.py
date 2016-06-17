@@ -121,6 +121,8 @@ def integrate(region):
     area = region.sum()
     return area
 
+if __name__ == "__main__":
+    # Garbage
     regions,region_ppm = get_region(data,ppm_scale,start,end)
 
     """ Integration """ 

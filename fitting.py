@@ -58,8 +58,10 @@ class Diffusion:
 
         if bipolar:
             self.delta = delta*2.    # gradient duration in s 
+            print("Using bipolar gradients, delta = %.3f s"%self.delta)
         else:
             self.delta = delta
+            print("Not using bipolar gradients, delta = %.3f s"%self.delta)
 
     def func(self,x,I0,D):
         """ 

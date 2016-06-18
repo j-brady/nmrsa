@@ -66,12 +66,12 @@ def run_proc(yaml_dict,g2s,pdf,outfile):
             plt.rcParams['axes.color_cycle'] = [colormap(i) for i in np.linspace(0, 1, regions.shape[0])]
             fig, axes = plt.subplots(1, 2,figsize=(12,6))
 
-            fit = Diffusion(T_diff=v["T_diff"],delta=v["delta"],Dtype=v["type"],bipolar=["bipolar"])
+            fit = Diffusion(T_diff=v["T_diff"],delta=v["delta"],Dtype=v["type"],bipolar=v["bipolar"])
             popt, pcov = curve_fit(fit.func, g2s, areas,[I0,D])
             perr = np.sqrt(np.diag(pcov))
             
             tex = " %.3e & $\pm$ %.3e & %.3f & %.3f & %s"%(popt[1],perr[1],v["T_diff"]*1000.,v["delta"]*1000,ft)
-            out = " %.3e\t%.3e\t%.3f\t%.3f\t %s\n"%(popt[1],perr[1],v["T_diff"]*1000.,v["delta"]*1000,ft)
+            out = " %.3e\t%.3e\t%.3f\t%.3f\t %s\n"%(popt[1],perr[1],v["T_diff"],v["delta"],ft)
 
             rows.append(tex)
             outfile.write(out)

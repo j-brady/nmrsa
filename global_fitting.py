@@ -14,7 +14,7 @@ def gaussian(x,mu,sigma):
     a = 1./(sigma*np.sqrt(2*np.pi))
     return a*np.exp(-np.square(x-mu)/(2.*sigma**2.))
 
-def residual(params,y,x,function,global_fit=False,sigma=None):
+def residual(params,y,x,function,global_fit=False,sigma=None,lmfit=False):
     
     """ Function for calculating residuals for leastsq fit.
         
@@ -57,8 +57,14 @@ def residual(params,y,x,function,global_fit=False,sigma=None):
         errs = []
 
         for y_i, x_i, f_i, s_i in zip(y,x,function,sigma):
-            err = (y_i - f_i(x_i, *params)) / s_i
-            errs.extend(err)
+            if lmfit:
+                err = (y_i - f_i(x_i, params)) / s_i
+		errs.extend(err)
+
+            else:
+                err = (y_i - f_i(x_i, *params)) / s_i
+		errs.extend(err)
+
         errs = np.array(errs).flatten()
         return errs
 # This commented code does not work with pandas data Series ...
@@ -67,8 +73,10 @@ def residual(params,y,x,function,global_fit=False,sigma=None):
 #        return err
 
     else:
-            
-        model = function(x,*params)
+        if lmfit:
+            model = function(x,params)
+        else:
+            model = function(x,*params)
         return (y-model)/sigma
 
 def resample(x,y,max_replacement=25):

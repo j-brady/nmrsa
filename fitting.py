@@ -48,20 +48,23 @@ class Diffusion:
 
     def __init__(self,T_diff,delta,Dtype="3Q",bipolar=True):
         if Dtype == "3Q":
+            print("Using Dtype %s"%Dtype)
             self.Qfactor = 3.
         elif Dtype == "2Q":
+            print("Using Dtype %s"%Dtype)
             self.Qfactor = 2.
         elif Dtype == "1Q":
+            print("Using Dtype %s"%Dtype)
             self.Qfactor = 1.
         
         self.T_diff = T_diff  # diffusion time in s
 
         if bipolar:
             self.delta = delta*2.    # gradient duration in s 
-            print("Using bipolar gradients, delta = %.3f s"%self.delta)
+            print("Using bipolar gradients, delta = %.6f s"%self.delta)
         else:
             self.delta = delta
-            print("Not using bipolar gradients, delta = %.3f s"%self.delta)
+            print("Not using bipolar gradients, delta = %.6f s"%self.delta)
 
     def func(self,x,I0,D):
         """ 

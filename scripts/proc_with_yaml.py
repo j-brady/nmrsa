@@ -107,7 +107,7 @@ def plot_fit(axes,g2s,areas,regions,region_ppm,func,popt):
     [ax2.plot(region_ppm,region,label="%d"%g2) for g2,region in zip(g2s,normalise(regions))]        
     ax2.set_xlabel("ppm")
     ax2.set_ylabel("normalised intensity")
-    ax2.legend(title="Gradient strength")
+    ax2.legend(title="$G^2$ - ($G^2 cm^{-2}$)",fontsize="small")
 
     ax1.plot(x,func(x,*popt),g2s,areas,"o")
     ax1.set_ylabel(r"I/I$_{0}$") 
@@ -122,7 +122,8 @@ def plot_fit(axes,g2s,areas,regions,region_ppm,func,popt):
 
 if __name__ == "__main__":
     """ Argument parser """
-    parser = argparse.ArgumentParser(description="Script for processing psuedo 2D diffusion data written by Jacob Brady and Rui Huang.")
+    parser = argparse.ArgumentParser(prog='PROG', usage='%(prog)s [options]',description="Script for processing psuedo 2D diffusion data written by Jacob Brady and Rui Huang.")
+
     parser.add_argument("-i","--params",
             type=str,help="Yaml file containing file names and parameters for processing.",
             default="proc.yaml")
@@ -130,6 +131,13 @@ if __name__ == "__main__":
     parser.add_argument("-g","--gradients",
             type=str,help="Yaml file containing gradient strengths.",
             default="gradients.yaml")
+    
+    #parser.add_argument("-dl","--difflist",
+    #        type=str,help="Bruker difflist file containing gradient strengths.")
+
+    parser.add_argument("--fitpeak",
+            help="Fit peak volume to gaussian",
+            action="store_true")
 
     parser.add_argument("-t","--title",
             type=str,help="title for result table",
@@ -141,6 +149,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     yaml_file = args.params
+    #difflist = args.difflist
     grad_file = args.gradients
     title = args.title
     outfile = open(args.outfile,"w")

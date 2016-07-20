@@ -46,7 +46,7 @@ class Diffusion:
 
     """
 
-    def __init__(self,T_diff,delta,Dtype="3Q",bipolar=True):
+    def __init__(self,T_diff,delta,Dtype="1Q",bipolar=True):
         if Dtype == "3Q":
             self.Qfactor = 3.
         elif Dtype == "2Q":

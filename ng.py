@@ -107,6 +107,9 @@ class Pseudo3D:
     def get_data(self):
         return self.data
 
+    def get_dic_data(self):
+        return self.dic,self.data
+
 
 def normalise(x):
     return (x-np.min(x))/(np.max(x)-np.min(x))

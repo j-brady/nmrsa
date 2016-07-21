@@ -38,7 +38,7 @@ def write_latex(string,fname="output.tex"):
 
 def run_proc(yaml_dict,g2s,pdf,outfile):
     table = {}
-    outfile.write("D\tErr\tT_diff\tDelta\tFile\n")
+    outfile.write("D\tErr\tT_diff\tDelta\tFile\tZGOPTNS\n")
     for k,v in yaml_dict.iteritems():
         k = k.replace("_","-")
         print "this is k %s" %k
@@ -47,6 +47,8 @@ def run_proc(yaml_dict,g2s,pdf,outfile):
         run_pipe_script(v["ft.com"],v["dirs"])
         rows = []
         for ft in v["dirs"]:
+            # for reading params
+            param_dic,_data = ng.fileio.bruker.read(ft)
             ft = os.path.join(ft,v["filename"])
 
             dic,data = ng.pipe.read(ft)
@@ -83,7 +85,7 @@ def run_proc(yaml_dict,g2s,pdf,outfile):
             perr = np.sqrt(np.diag(pcov))
             
             tex = " %.3e & $\pm$ %.3e & %.3f & %.3f & %s"%(popt[1],perr[1],v["T_diff"]*1000.,v["delta"]*1000,ft)
-            out = " %.3e\t%.3e\t%.6f\t%.6f\t %s\n"%(popt[1],perr[1],v["T_diff"],v["delta"],ft)
+            out = " %.3e\t%.3e\t%.6f\t%.6f\t%s\t%s\n"%(popt[1],perr[1],v["T_diff"],v["delta"],ft,param_dic['acqus']['ZGOPTNS'])
 
             rows.append(tex)
             outfile.write(out)

@@ -36,7 +36,7 @@ def write_latex(string,fname="output.tex"):
     with open(fname,"a") as f:
         f.write("%s \n"% string)
 
-def run_proc(yaml_dict,g2s,pdf,outfile):
+def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False):
     table = {}
     outfile.write("D\tErr\tT_diff\tDelta\tFile\tZGOPTNS\n")
     for k,v in yaml_dict.iteritems():
@@ -73,19 +73,26 @@ def run_proc(yaml_dict,g2s,pdf,outfile):
             ax1 = fig.add_subplot(121)
             ax2 = fig.add_subplot(122)
 
-            #ax1 = plt.subplot2grid((4,4), (2, 0), colspan=2,rowspan=2)
-            #ax2 = plt.subplot2grid((4,4), (0, 0), colspan=2,rowspan=2)
-            #ax3 = plt.subplot2grid((4,4), (1, 0), colspan=1,rowspan=1)
             # x,y,wid,height
             ax3 = plt.axes([.27, .55, .20, .3])
             axes = [ax1,ax2,ax3]
 
-            fit = Diffusion(T_diff=v["T_diff"],delta=v["delta"],Dtype=v["type"],bipolar=v["bipolar"])
+            if read_params:
+                print("Reading parameters from acqus file")
+                T_diff = param_dic['acqus']['D'][9]
+                delta  = param_dic['acqus']['P'][53]/1e6 # convert from us to s
+                fit = Diffusion(T_diff=T_diff, delta=delta, Dtype=v["type"], bipolar=v["bipolar"])
+            else:
+                print("Reading parameters from yaml file")
+                T_diff = v["T_diff"]
+                delta  = v["delta"]
+                fit = Diffusion(T_diff=T_diff, delta=delta, Dtype=v["type"], bipolar=v["bipolar"])
+
             popt, pcov = curve_fit(fit.func, g2s, areas,[I0,D])
             perr = np.sqrt(np.diag(pcov))
             
-            tex = " %.3e & $\pm$ %.3e & %.3f & %.3f & %s"%(popt[1],perr[1],v["T_diff"]*1000.,v["delta"]*1000,ft)
-            out = " %.3e\t%.3e\t%.6f\t%.6f\t%s\t%s\n"%(popt[1],perr[1],v["T_diff"],v["delta"],ft,param_dic['acqus']['ZGOPTNS'])
+            tex = " %.3e & $\pm$ %.3e & %.3f & %.3f & %s"%(popt[1], perr[1], T_diff*1000., delta*1000, ft)
+            out = " %.3e\t%.3e\t%.6f\t%.6f\t%s\t%s\n"%(popt[1], perr[1], T_diff, delta, ft, param_dic['acqus']['ZGOPTNS'])
 
             rows.append(tex)
             outfile.write(out)
@@ -137,8 +144,12 @@ if __name__ == "__main__":
     #parser.add_argument("-dl","--difflist",
     #        type=str,help="Bruker difflist file containing gradient strengths.")
 
-    parser.add_argument("--fitpeak",
-            help="Fit peak volume to gaussian",
+    #parser.add_argument("--fitpeak",
+    #        help="Fit peak volume to gaussian",
+    #        action="store_true")
+
+    parser.add_argument("-r","--readAcqus",
+            help="read parameters from acqus file",
             action="store_true")
 
     parser.add_argument("-t","--title",
@@ -154,6 +165,7 @@ if __name__ == "__main__":
     #difflist = args.difflist
     grad_file = args.gradients
     title = args.title
+    readAcqus = args.readAcqus
     outfile = open(args.outfile,"w")
 
     """ Getting gradients """
@@ -166,7 +178,7 @@ if __name__ == "__main__":
     """ Getting params and processing """
     params = load_yaml(yaml_file)
     pdf = PdfPages("fits_summary.pdf")
-    table = run_proc(params,g2s,pdf,outfile)
+    table = run_proc(params,g2s,pdf,outfile,readAcqus)
     pdf.close()
     
     """ Making results table """

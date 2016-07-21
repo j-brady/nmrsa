@@ -83,7 +83,7 @@ def run_proc(yaml_dict,g2s,pdf,outfile):
             perr = np.sqrt(np.diag(pcov))
             
             tex = " %.3e & $\pm$ %.3e & %.3f & %.3f & %s"%(popt[1],perr[1],v["T_diff"]*1000.,v["delta"]*1000,ft)
-            out = " %.3e\t%.3e\t%.3f\t%.3f\t %s\n"%(popt[1],perr[1],v["T_diff"],v["delta"],ft)
+            out = " %.3e\t%.3e\t%.6f\t%.6f\t %s\n"%(popt[1],perr[1],v["T_diff"],v["delta"],ft)
 
             rows.append(tex)
             outfile.write(out)

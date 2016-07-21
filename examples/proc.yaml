@@ -1,0 +1,16 @@
+# Notes 
+"Sample":
+    notes: notes 
+
+    dirs: 
+        - "filename1"
+        - "filename2"
+    filename: test.ft
+    fid.com: fid.com
+    ft.com: ft.com
+    type: 1Q
+    bipolar: False
+    start_ppm: 4.8
+    end_ppm: 4.6
+    T_diff: 0.1
+    delta: 0.001

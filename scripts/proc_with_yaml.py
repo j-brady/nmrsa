@@ -91,14 +91,16 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False):
             popt, pcov = curve_fit(fit.func, g2s, areas,[I0,D])
             perr = np.sqrt(np.diag(pcov))
             
+            ZGOPTNS = param_dic['acqus']['ZGOPTNS']
             tex = " %.3e & $\pm$ %.3e & %.3f & %.3f & %s"%(popt[1], perr[1], T_diff*1000., delta*1000, ft)
-            out = " %.3e\t%.3e\t%.6f\t%.6f\t%s\t%s\n"%(popt[1], perr[1], T_diff, delta, ft, param_dic['acqus']['ZGOPTNS'])
+            out = " %.3e\t%.3e\t%.6f\t%.6f\t%s\t%s\n"%(popt[1], perr[1], T_diff, delta, ft, ZGOPTNS)
 
             rows.append(tex)
             outfile.write(out)
             plot_fit(axes,g2s,areas,regions,region_ppm,fit.func,popt)
 
-            plt.suptitle("%s:%s\nD=%8.3e $\pm$%.3e"%(k,ft,popt[1],perr[1]))
+            #plt.suptitle("%s:%s\nD=%8.3e $\pm$%.3e"%(k,ft,popt[1],perr[1]))
+            plt.suptitle("T_diff = %f, delta = %f:%s\nD=%8.3e $\pm$%.3e: ZGOPTNS=%s"%(T_diff, delta, ft, popt[1], perr[1], ZGOPTNS))
             pdf.savefig()
             plt.close()
             

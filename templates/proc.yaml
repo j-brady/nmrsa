@@ -1,0 +1,19 @@
+{% extends "main.yaml" %}
+{% block content -%}
+"{{ name }}":
+    notes: {{ notes }} 
+
+    dirs: 
+    {% for dir in directories -%}
+        - "{{ dir }}"
+    {% endfor %}
+    filename: {{ filename }}
+    fid.com: {{ fid_com }}
+    ft.com: {{ ft_com }}
+    type: {{ type }}
+    bipolar: {{ bipolar }}
+    start_ppm: {{ start_ppm }}
+    end_ppm: {{ end_ppm }}
+    {{ "#" }}T_diff: {{ T_diff }}
+    {{ "#" }}delta: {{ delta }}
+{% endblock %}

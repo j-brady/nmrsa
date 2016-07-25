@@ -1,7 +1,9 @@
 #! /usr/bin/python
 import os
 import re
+import sys
 import argparse
+from time import strftime, localtime
 
 import yaml
 import subprocess as sp
@@ -36,7 +38,7 @@ def write_latex(string,fname="output.tex"):
     with open(fname,"a") as f:
         f.write("%s \n"% string)
 
-def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False):
+def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
     table = {}
     outfile.write("D\tErr\tT_diff\tDelta\tFile\tZGOPTNS\n")
     for k,v in yaml_dict.iteritems():
@@ -48,7 +50,7 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False):
         rows = []
         for ft in v["dirs"]:
             # for reading params
-            param_dic,_data = ng.fileio.bruker.read(ft)
+            param_dic,_data = ng.bruker.read(ft)
             ft = os.path.join(ft,v["filename"])
 
             dic,data = ng.pipe.read(ft)
@@ -79,8 +81,12 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False):
 
             if read_params:
                 print("Reading parameters from acqus file")
-                T_diff = param_dic['acqus']['D'][9]
-                delta  = param_dic['acqus']['P'][53]/1e6 # convert from us to s
+                T_diff = param_dic['acqus']['D'][delay]
+                if T_diff > 1.0 or T_diff < 0.02:
+                    raise ValueError("Are you sure you chose the right T_diff value? T_diff = %f s"%T_diff)
+                delta  = param_dic['acqus']['P'][pulse]/1e6 # convert from us to s
+                if delta > 0.005 or delta < 0.0005:
+                    raise ValueError("Are you sure you chose the right delta value? delta = %f s"%delta)
                 fit = Diffusion(T_diff=T_diff, delta=delta, Dtype=v["type"], bipolar=v["bipolar"])
             else:
                 print("Reading parameters from yaml file")
@@ -154,6 +160,18 @@ if __name__ == "__main__":
             help="read parameters from acqus file",
             action="store_true")
 
+    parser.add_argument("-nl","--nolatex",
+            help="don't output latex table",
+            action="store_true")
+
+    parser.add_argument("-d","--delay",
+            help="number of delay to read e.g. 9 for d9",
+            default=9,type=int)
+
+    parser.add_argument("-p","--pulse",
+            help="number of pulse to read e.g. 53 for p53",
+            default=53,type=int)
+
     parser.add_argument("-t","--title",
             type=str,help="title for result table",
             default="no title")
@@ -168,6 +186,9 @@ if __name__ == "__main__":
     grad_file = args.gradients
     title = args.title
     readAcqus = args.readAcqus
+    delay = args.delay
+    pulse = args.pulse
+    nolatex = args.nolatex
     outfile = open(args.outfile,"w")
 
     """ Getting gradients """
@@ -180,7 +201,7 @@ if __name__ == "__main__":
     """ Getting params and processing """
     params = load_yaml(yaml_file)
     pdf = PdfPages("fits_summary.pdf")
-    table = run_proc(params,g2s,pdf,outfile,readAcqus)
+    table = run_proc(params,g2s,pdf,outfile,readAcqus,delay,pulse)
     pdf.close()
     
     """ Making results table """
@@ -190,4 +211,21 @@ if __name__ == "__main__":
     out = open(oname,'w')
     out.write(temp.render(tables=table,title=title))
     out.close()
-    sp.call("pdflatex %s"%oname,shell=True)
+
+    """ logging """
+    user = os.uname()[1]
+    t = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+    info = ["Run by %s"%user,t]
+    log = open("proc.log","a")
+    log.write("Ran %s\n using the following arguments:\n"%__file__)
+    log.write("%s\n"%" ".join(sys.argv[1:]))
+    for i in info:
+        log.write(i)
+    log.write("\n######################################################\n")
+    log.close()
+
+    """ latex """
+    if nolatex:
+        pass
+    else:
+        sp.call("pdflatex %s"%oname,shell=True)

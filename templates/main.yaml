@@ -1,0 +1,5 @@
+{% for inf in info -%}
+{{ "# " }}{{ inf }}
+{% endfor %}
+{% block content -%}
+{% endblock %}

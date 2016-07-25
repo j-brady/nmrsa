@@ -1,0 +1,9 @@
+{% extends "main.yaml" %}
+{% block content -%}
+{{ "#" }}gradient strengths 
+max strength: {{ max_strength }} {{ "#G cm-1" }}
+percentage:
+{% for g in percentages -%}
+    - {{ g }}
+{% endfor %}
+{% endblock %}

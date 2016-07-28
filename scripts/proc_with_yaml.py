@@ -217,8 +217,8 @@ if __name__ == "__main__":
     t = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
     info = ["Run by %s\n"%user,t]
     log = open("proc.log","a")
-    log.write("Ran %s\n using the following arguments:\n"%__file__)
-    log.write("%s\n"%" ".join(sys.argv[1:]))
+    log.write("Ran %s\n using the following arguments:\n\n"%__file__)
+    log.write("%s\n\n"%" ".join(sys.argv[1:]))
     for i in info:
         log.write(i)
     log.write("\n\n######################################################\n\n")

@@ -58,6 +58,10 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
             ppm_scale = uc.ppm_scale()
             start_ppm = v["start_ppm"]
             end_ppm = v["end_ppm"]
+            # Switch ppm values if wrong way round
+            if start_ppm < end_ppm:
+               start_ppm, end_ppm = end_ppm, start_ppm
+
             start = uc(start_ppm,"ppm")
             end = uc(end_ppm,"ppm")
             regions,region_ppm = get_region(data,ppm_scale,start,end)
@@ -189,7 +193,8 @@ if __name__ == "__main__":
     delay = args.delay
     pulse = args.pulse
     nolatex = args.nolatex
-    outfile = open(args.outfile,"w")
+    of = args.outfile
+    outfile = open(of,"w")
 
     """ Getting gradients """
     grads = load_yaml(grad_file)
@@ -219,6 +224,9 @@ if __name__ == "__main__":
     log = open("proc.log","a")
     log.write("Ran %s\n using the following arguments:\n\n"%__file__)
     log.write("%s\n\n"%" ".join(sys.argv[1:]))
+    log.write("proc.yaml:\n%s\n\n"%open(yaml_file,"r").read())
+    log.write("gradients.yaml:\n%s\n\n"%open(grad_file,"r").read())
+    log.write("output.txt:\n%s\n\n"%open(of,"r").read())
     for i in info:
         log.write(i)
     log.write("\n\n######################################################\n\n")

@@ -9,3 +9,4 @@ productOperators.py
 refNMR.py
 relaxationDispersion.py
 scp_to.py
+*.fuda

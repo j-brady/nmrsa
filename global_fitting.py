@@ -3,6 +3,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import leastsq, curve_fit
+from lmfit import minimize
 
 """ For debugging """
 #np.random.seed(1987)
@@ -43,7 +44,7 @@ def residual(params,y,x,function,global_fit=False,sigma=None,lmfit=False):
 
     """
 
-    if not sigma:
+    if sigma is None:
 
         sigma = [1. for _ in range(len(x))]
 
@@ -79,7 +80,7 @@ def residual(params,y,x,function,global_fit=False,sigma=None,lmfit=False):
             model = function(x,*params)
         return (y-model)/sigma
 
-def resample(x,y,max_replacement=25):
+def resample(x,y,max_replacement=100):
     """ Resample dataset with replacement using numpy.random.choice for bootstrap fit.
         
         Args:
@@ -120,7 +121,7 @@ def resample(x,y,max_replacement=25):
         print("len(x) != len(y)!")
 
 
-def bootstrap(params, y, x, function, global_fit=False, iterations=100, **kwargs):
+def bootstrap(params, y, x, function, global_fit=False, lmfit=False, yerrs=None, iterations=100, **kwargs):
 
     results = []
     
@@ -135,12 +136,19 @@ def bootstrap(params, y, x, function, global_fit=False, iterations=100, **kwargs
              x_rs,y_rs = resample(x,y,**kwargs)
              
              print x_rs,y_rs
-        print data
-             
-        result, pcov, infodict, errmsg, success = leastsq(residual, params, args=(y_rs, x_rs, function, global_fit),full_output=True)
+#        print data
+        #if yerrs is None:
+        #    yerrs = [1. for i in y_rs]
+        #else
+        yerrs = None # need to add weighting 
+        if lmfit:     
+            result = minimize(residual,params,args=(y_rs, x_rs, function, global_fit, yerrs, lmfit))
+        else:
+            result, pcov, infodict, errmsg, success = leastsq(residual, params, args=(y_rs, x_rs, function, global_fit),full_output=True)
         print result
         results.append(result)
 #    print results
+
     return np.array(results)
 
 if __name__ == "__main__":

@@ -80,17 +80,21 @@ def residual(params,y,x,function,global_fit=False,sigma=None,lmfit=False):
             model = function(x,*params)
         return (y-model)/sigma
 
-def resample(x,y,max_replacement=100):
+def resample(x,y,yerr=None,max_replacement=100):
     """ Resample dataset with replacement using numpy.random.choice for bootstrap fit.
         
         Args:
             x: set of x values
             y: set of y values
+            yerr: set of y errors
             max_replacement: maximum percentage of data points that can be replaced. Important for small datasets.
 
         Returns:
-            resample_x, resample_y
-        
+            if yerrs:
+                resample_x, resample_y
+            else:
+                resample_x, resample_y, resample_yerr
+                
         Example:
             
         """ 
@@ -114,37 +118,55 @@ def resample(x,y,max_replacement=100):
         print inds
         resample_x = x[inds]
         resample_y = y[inds]
-         
-        return resample_x,resample_y
+        if yerr is None:
+            return resample_x, resample_y
 
+        elif len(yerr) == len(y):
+            resample_yerr = yerr[inds]
+            return resample_x, resample_y, resample_yerr
+
+        else:
+            raise TypeError("yerr should be a list of length y containing the errors of y.")
     else:
         print("len(x) != len(y)!")
+        raise TypeError("len(x) should be the same as len(y).")
 
 
-def bootstrap(params, y, x, function, global_fit=False, lmfit=False, yerrs=None, iterations=100, **kwargs):
+def bootstrap(params, y, x, function, global_fit=False, lmfit=False, yerr=None, iterations=100, **kwargs):
 
     results = []
     
     for _ in range(iterations):
 
         if global_fit:
-             data = np.array([resample(x_i,y_i,**kwargs) for x_i, y_i in zip(x,y)])
-             x_rs = data[:,0]
-             y_rs = data[:,1]
+            if yerr is None:    
+                data = np.array([resample(x_i,y_i,**kwargs) for x_i, y_i in zip(x,y)])
+                x_rs = data[:,0]
+                y_rs = data[:,1]
+                print x_rs, y_rs
+            else:
+                data = np.array([resample(x_i,y_i,yerr_i,**kwargs) for x_i, y_i, yerr_i in zip(x,y,yerr)])
+                x_rs = data[:,0]
+                y_rs = data[:,1]
+                yerr_rs = data[:,2]
+                print x_rs, y_rs, yerr_rs
              
         else:
-             x_rs,y_rs = resample(x,y,**kwargs)
+            if yerr is None:
+                x_rs, y_rs = resample(x,y,**kwargs)
+                print x_rs,y_rs
+            else:
+                x_rs, y_rs, yerr_rs = resample(x,y,yerr,**kwargs)
+                print x_rs,y_rs,yerr_rs
              
-             print x_rs,y_rs
 #        print data
         #if yerrs is None:
         #    yerrs = [1. for i in y_rs]
         #else
-        yerrs = None # need to add weighting 
         if lmfit:     
-            result = minimize(residual,params,args=(y_rs, x_rs, function, global_fit, yerrs, lmfit))
+            result = minimize(residual,params,args=(y_rs, x_rs, function, global_fit, yerr, lmfit))
         else:
-            result, pcov, infodict, errmsg, success = leastsq(residual, params, args=(y_rs, x_rs, function, global_fit),full_output=True)
+            result, pcov, infodict, errmsg, success = leastsq(residual, params, args=(y_rs, x_rs, function, global_fit, yerr),full_output=True)
         print result
         results.append(result)
 #    print results

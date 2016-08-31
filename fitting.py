@@ -15,14 +15,20 @@ class R1rho:
     def __init__(self):
         pass
 
-    def func(self,t,I0,R1):
+    def func(self,t,params):
+        I0 = params["I0"].value
+        R1 = params["R1"].value
         return I0*np.exp(-t*R1)
           
-    def getDelays(self,yaml_file="time_relax_list.yaml"):
+    def getDelays(self,fname="time_relax_list.yaml"):
         """ reads yaml file containing list of T values and
             returns a numpy array of the T values """
-        values = load_yaml(yaml_file)
-        values = np.array(values["T values"])
+        if fname.endswith(".yaml") or fname.endswith(".yml"):
+            values = load_yaml(fname)
+            values = np.array(values["T values"])
+        else:
+            values = np.genfromtxt(fname)
+
         return values
 
     def calcR2(self,R1,Omega_s,nu_1s):

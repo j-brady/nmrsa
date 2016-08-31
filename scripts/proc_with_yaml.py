@@ -14,6 +14,7 @@ import seaborn as sns
 import numpy as np
 import nmrglue as ng
 from scipy.optimize import curve_fit
+import pandas as pd
 
 from jinja2 import Environment, PackageLoader
 
@@ -67,6 +68,7 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
             regions,region_ppm = get_region(data,ppm_scale,start,end)
             
             areas = np.array([integrate(i) for i in regions])
+            _areas = areas
             I0 = areas[0]
             print I0
             areas = areas/I0
@@ -104,6 +106,9 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
             ZGOPTNS = param_dic['acqus']['ZGOPTNS']
             tex = " %.3e & $\pm$ %.3e & %.3f & %.3f & %s"%(popt[1], perr[1], T_diff*1000., delta*1000, ft)
             out = " %.3e\t%.3e\t%.6f\t%.6f\t%s\t%s\n"%(popt[1], perr[1], T_diff, delta, ft, ZGOPTNS)
+            integrals = pd.DataFrame({"Integral":_areas,"Normalised":areas,"G":np.sqrt(g2s),"G^2":g2s})
+            integrals.to_csv("integrals.txt",index=False,sep="\t")
+            integrals.to_pickle("integrals.pkl")
 
             rows.append(tex)
             outfile.write(out)

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import leastsq, curve_fit
 from lmfit import minimize
 
+
 """ For debugging """
 #np.random.seed(1987)
 
@@ -97,7 +98,7 @@ def resample(x,y,yerr=None,max_replacement=100):
                 
         Example:
             
-        """ 
+    """ 
 
     if len(x) == len(y):
 
@@ -132,8 +133,11 @@ def resample(x,y,yerr=None,max_replacement=100):
         raise TypeError("len(x) should be the same as len(y).")
 
 
-def bootstrap(params, y, x, function, global_fit=False, lmfit=False, yerr=None, iterations=100, **kwargs):
-
+def bootstrap(params, y, x, function, global_fit=False, lmfit=False, yerr=None, iterations=100, montecarloX=False, mc_kwargs={"std_x":0.1,"iterations":200}, **kwargs):
+    if montecarloX:
+        from errors import monte_carlox
+    else:
+        pass
     results = []
     
     for _ in range(iterations):
@@ -155,6 +159,7 @@ def bootstrap(params, y, x, function, global_fit=False, lmfit=False, yerr=None, 
             if yerr is None:
                 x_rs, y_rs = resample(x,y,**kwargs)
                 print x_rs,y_rs
+                yerr_rs = None
             else:
                 x_rs, y_rs, yerr_rs = resample(x,y,yerr,**kwargs)
                 print x_rs,y_rs,yerr_rs
@@ -163,15 +168,22 @@ def bootstrap(params, y, x, function, global_fit=False, lmfit=False, yerr=None, 
         #if yerrs is None:
         #    yerrs = [1. for i in y_rs]
         #else
-        if lmfit:     
-            result = minimize(residual,params,args=(y_rs, x_rs, function, global_fit, yerr, lmfit))
+        if montecarloX:
+            """ Do montecarlo simulation of x for every y bootstrap """
+            std_x = mc_kwargs["std_x"]
+            mc_iterations = mc_kwargs["iterations"]
+            result = monte_carlox(function, x_rs, params, y_rs, std_x, yerr_rs, global_fit, lmfit, iterations=mc_iterations)
+            results.append(result)
         else:
-            result, pcov, infodict, errmsg, success = leastsq(residual, params, args=(y_rs, x_rs, function, global_fit, yerr),full_output=True)
-        print result
-        results.append(result)
+            if lmfit:     
+                result = minimize(residual,params,args=(y_rs, x_rs, function, global_fit, yerr_rs, lmfit))
+            else:
+                result, pcov, infodict, errmsg, success = leastsq(residual, params, args=(y_rs, x_rs, function, global_fit, yerr_rs),full_output=True)
+            print result
+            results.append(result)
 #    print results
 
-    return np.array(results)
+    return np.array(results).ravel()
 
 if __name__ == "__main__":
 

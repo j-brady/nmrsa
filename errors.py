@@ -2,7 +2,7 @@
 import numpy as np
 #import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-from .global_fitting import residual
+from global_fitting import residual, resample
 from lmfit import minimize
 
 #np.random.seed(1987)
@@ -107,7 +107,7 @@ def monte_carlox(func,x,p,y,std_x,y_err=None,global_fit=False,lmfit=True,iterati
                                                 
     return np.array(fit_results)
 
-def bootstrap():
+def bootstrapYmontecarloX(n_bs=100,n_mc=100):
     """ 
         Generate n data sets by randomly replacing a subset of points.
         

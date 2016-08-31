@@ -49,6 +49,7 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
         run_pipe_script(v["fid.com"],v["dirs"])
         run_pipe_script(v["ft.com"],v["dirs"])
         rows = []
+        integrals = pd.DataFrame()
         for ft in v["dirs"]:
             # for reading params
             param_dic,_data = ng.bruker.read(ft)
@@ -106,9 +107,9 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
             ZGOPTNS = param_dic['acqus']['ZGOPTNS']
             tex = " %.3e & $\pm$ %.3e & %.3f & %.3f & %s"%(popt[1], perr[1], T_diff*1000., delta*1000, ft)
             out = " %.3e\t%.3e\t%.6f\t%.6f\t%s\t%s\n"%(popt[1], perr[1], T_diff, delta, ft, ZGOPTNS)
-            integrals = pd.DataFrame({"Integral":_areas,"Normalised":areas,"G":np.sqrt(g2s),"G^2":g2s})
-            integrals.to_csv("integrals.txt",index=False,sep="\t")
-            integrals.to_pickle("integrals.pkl")
+            data_dirs = [ft for _ in _areas]
+            integral = pd.DataFrame({"Integral":_areas,"Normalised":areas,"G":np.sqrt(g2s),"G^2":g2s,"expt":data_dirs})
+            integrals = integrals.append(integral,ignore_index=True)
 
             rows.append(tex)
             outfile.write(out)
@@ -122,6 +123,9 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
             print "this is k NOW %s"%k
             table[k]=rows
     outfile.close()
+    
+    integrals.to_csv("integrals.txt",index=False,sep="\t")
+    integrals.to_pickle("integrals.pkl")
     for k,rows in table.iteritems():
         table[k] = [val.replace("_","-") for val in rows]
     return table

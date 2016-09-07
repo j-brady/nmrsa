@@ -182,8 +182,10 @@ def bootstrap(params, y, x, function, global_fit=False, lmfit=False, yerr=None, 
             print result
             results.append(result)
 #    print results
-
-    return np.array(results).ravel()
+    if lmfit:
+        return np.array(results).ravel()
+    else:
+        return np.array(results)
 
 if __name__ == "__main__":
 

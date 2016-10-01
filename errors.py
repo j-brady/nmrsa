@@ -121,8 +121,8 @@ def tmean_std(array,percentiles):
 
     """
     # percentiles
-    lp = percentile(array,percentiles[0])
-    up = percentile(array,percentiles[1])
+    lp = np.percentile(array,percentiles[0])
+    up = np.percentile(array,percentiles[1])
     mask = np.ma.masked_inside(array, lp, up)
     tarray = array[mask.mask]
     tmean = tarray.mean()

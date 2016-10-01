@@ -58,17 +58,33 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
             dic,data = ng.pipe.read(ft)
             uc = ng.pipe.make_uc(dic,data)
             ppm_scale = uc.ppm_scale()
-            start_ppm = v["start_ppm"]
-            end_ppm = v["end_ppm"]
-            # Switch ppm values if wrong way round
-            if start_ppm < end_ppm:
-               start_ppm, end_ppm = end_ppm, start_ppm
+ 
+            if type(v["start_ppm"]) is list:
+                """ If a list is given multiple peaks can be integrated and summed """
+                areas = []
+                for _start,_end in zip(v["start_ppm"],v["end_ppm"]):
+                    if _start < _end:
+                       _start, _end = _end, _start
 
-            start = uc(start_ppm,"ppm")
-            end = uc(end_ppm,"ppm")
-            regions,region_ppm = get_region(data,ppm_scale,start,end)
+                    start = uc(_start,"ppm")
+                    end = uc(_end,"ppm")
+                    regions,region_ppm = get_region(data,ppm_scale,start,end)
+                    areas.append(np.array([integrate(i) for i in regions]))
+                areas = np.array(areas)
+
+            else:
+                start_ppm = v["start_ppm"]
+                end_ppm = v["end_ppm"]
+                # Switch ppm values if wrong way round
+                if start_ppm < end_ppm:
+                   start_ppm, end_ppm = end_ppm, start_ppm
+
+                start = uc(start_ppm,"ppm")
+                end = uc(end_ppm,"ppm")
+                regions,region_ppm = get_region(data,ppm_scale,start,end)
             
-            areas = np.array([integrate(i) for i in regions])
+                areas = np.array([integrate(i) for i in regions])
+
             _areas = areas
             I0 = areas[0]
             print I0

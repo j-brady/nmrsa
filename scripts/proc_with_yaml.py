@@ -209,6 +209,10 @@ if __name__ == "__main__":
             type=str,help="name of output file",
             default="output.txt")
 
+    parser.add_argument("-fs","--fitsummary",
+            type=str,help="name of fit summary pdf",
+            default="fits_summary.pdf")
+
     args = parser.parse_args()
     yaml_file = args.params
     #difflist = args.difflist
@@ -220,6 +224,7 @@ if __name__ == "__main__":
     nolatex = args.nolatex
     of = args.outfile
     outfile = open(of,"w")
+    fs = args.fitsummary
 
     """ Getting gradients """
     grads = load_yaml(grad_file)
@@ -230,7 +235,7 @@ if __name__ == "__main__":
 
     """ Getting params and processing """
     params = load_yaml(yaml_file)
-    pdf = PdfPages("fits_summary.pdf")
+    pdf = PdfPages(fs)
     table = run_proc(params,g2s,pdf,outfile,readAcqus,delay,pulse)
     pdf.close()
     

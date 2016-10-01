@@ -107,6 +107,29 @@ def monte_carlox(func,x,p,y,std_x,y_err=None,global_fit=False,lmfit=True,iterati
                                                 
     return np.array(fit_results)
 
+def tmean_std(array,percentiles):
+    """ Calculates the trimmed mean and the std of the trimmed data
+    
+        Arguments:
+        array -- numpy array of data
+        percentiles -- tuple of lower and upper percentiles to use for tmean
+
+        Returns:
+        tmean -- trimmed mean
+        std -- standard deviation of trimmed region
+        indices -- indices of data used for tmean calculation
+
+    """
+    # percentiles
+    lp = percentile(array,percentiles[0])
+    up = percentile(array,percentiles[1])
+    mask = np.ma.masked_inside(array, lp, up)
+    tarray = array[mask.mask]
+    tmean = tarray.mean()
+    std = tarray.std()
+    mask = mask.mask
+    return tmean, std, mask
+
 def bootstrapYmontecarloX(n_bs=100,n_mc=100):
     """ 
         Generate n data sets by randomly replacing a subset of points.

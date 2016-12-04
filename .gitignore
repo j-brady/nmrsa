@@ -1,6 +1,8 @@
 *.pyc
 *.ipynb
 *.ft
+*.ft1
+*.ft2
 *.tgz
 diffusion.py
 predictNOEs.py

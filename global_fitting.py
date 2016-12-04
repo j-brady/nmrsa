@@ -17,9 +17,9 @@ def gaussian(x,mu,sigma):
     return a*np.exp(-np.square(x-mu)/(2.*sigma**2.))
 
 def residual(params,y,x,function,global_fit=False,sigma=None,lmfit=False):
-    
+
     """ Function for calculating residuals for leastsq fit.
-        
+
         Args:
 
             params (list): your list of parameters in same order as arguments for your function/fitting model e.g. [mu,sigma]
@@ -61,11 +61,11 @@ def residual(params,y,x,function,global_fit=False,sigma=None,lmfit=False):
         for y_i, x_i, f_i, s_i in zip(y,x,function,sigma):
             if lmfit:
                 err = (y_i - f_i(x_i, params)) / s_i
-		errs.extend(err)
+                #errs.extend(err)
 
             else:
                 err = (y_i - f_i(x_i, *params)) / s_i
-		errs.extend(err)
+            errs.extend(err)
 
         errs = np.array(errs).flatten()
         return errs
@@ -83,7 +83,7 @@ def residual(params,y,x,function,global_fit=False,sigma=None,lmfit=False):
 
 def resample(x,y,yerr=None,max_replacement=100):
     """ Resample dataset with replacement using numpy.random.choice for bootstrap fit.
-        
+
         Args:
             x: set of x values
             y: set of y values
@@ -95,10 +95,10 @@ def resample(x,y,yerr=None,max_replacement=100):
                 resample_x, resample_y
             else:
                 resample_x, resample_y, resample_yerr
-                
+
         Example:
-            
-    """ 
+
+    """
 
     if len(x) == len(y):
 
@@ -116,7 +116,7 @@ def resample(x,y,yerr=None,max_replacement=100):
         inds = np.sort(data_indices)
 
         #inds = np.sort(np.random.choice(data_indices,length))
-        print inds
+        print(inds)
         resample_x = x[inds]
         resample_y = y[inds]
         if yerr is None:
@@ -139,31 +139,31 @@ def bootstrap(params, y, x, function, global_fit=False, lmfit=False, yerr=None, 
     else:
         pass
     results = []
-    
+
     for _ in range(iterations):
 
         if global_fit:
-            if yerr is None:    
+            if yerr is None:
                 data = np.array([resample(x_i,y_i,**kwargs) for x_i, y_i in zip(x,y)])
                 x_rs = data[:,0]
                 y_rs = data[:,1]
-                print x_rs, y_rs
+                print(x_rs, y_rs)
             else:
                 data = np.array([resample(x_i,y_i,yerr_i,**kwargs) for x_i, y_i, yerr_i in zip(x,y,yerr)])
                 x_rs = data[:,0]
                 y_rs = data[:,1]
                 yerr_rs = data[:,2]
-                print x_rs, y_rs, yerr_rs
-             
+                print(x_rs, y_rs, yerr_rs)
+
         else:
             if yerr is None:
                 x_rs, y_rs = resample(x,y,**kwargs)
-                print x_rs,y_rs
+                print(x_rs,y_rs)
                 yerr_rs = None
             else:
                 x_rs, y_rs, yerr_rs = resample(x,y,yerr,**kwargs)
-                print x_rs,y_rs,yerr_rs
-             
+                print(x_rs,y_rs,yerr_rs)
+
 #        print data
         #if yerrs is None:
         #    yerrs = [1. for i in y_rs]
@@ -175,11 +175,11 @@ def bootstrap(params, y, x, function, global_fit=False, lmfit=False, yerr=None, 
             result = monte_carlox(function, x_rs, params, y_rs, std_x, yerr_rs, global_fit, lmfit, iterations=mc_iterations)
             results.append(result)
         else:
-            if lmfit:     
+            if lmfit:
                 result = minimize(residual,params,args=(y_rs, x_rs, function, global_fit, yerr_rs, lmfit))
             else:
                 result, pcov, infodict, errmsg, success = leastsq(residual, params, args=(y_rs, x_rs, function, global_fit, yerr_rs),full_output=True)
-            print result
+            print(result)
             results.append(result)
 #    print results
     if lmfit:
@@ -202,15 +202,15 @@ if __name__ == "__main__":
 
     hist, bin_edges = np.histogram(d1,20,density=True)
     p0 = [mu,sigma]
-    x = bin_edges[:-1] 
+    x = bin_edges[:-1]
     y = hist
     result, pcov, infodict, errmsg, success = leastsq(residual,p0,args=(y,x,gaussian),full_output=True)
-    print result
+    print(result)
     bs = bootstrap(p0, y, x, gaussian, global_fit=False,iterations=1000)
     av_mu = np.mean(bs[:,0])
     std_mu = np.std(bs[:,0])
-    print av_mu,std_mu
-    
+    print(av_mu,std_mu)
+
 
     """ Global fit """
 #    bins = np.min(data),np.max(data)

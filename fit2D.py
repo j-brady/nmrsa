@@ -22,14 +22,17 @@ def get_peak_bounds(peak,F1_width=0.20,F2_width=0.80):
     f2 = [peak.F2 + F2_width/2. , peak.F2 - F2_width/2]
     return f1,f2
 
+def peak_mask(shape,center,radius):
+    f2,f1 = np.ogrid[:shape[0],:shape[1]]
+    cf2,cf1 = center
 
 
 
 if __name__ == "__main__":
-    spectrum = Pseudo3D("spectra/pseudo3d/test.ft") 
+    spectrum = Pseudo3D("spectra/pseudo3d/buffer_1432.ft") 
     peaks= pd.read_table("spectra/pseudo3d/buffer_peaks1432.txt",comment="#",names=["F1","F2","Assignment"],delim_whitespace=True)
-    peak = peaks.ix[10]
-    print peaks
+    peak = peaks.ix[1]
+    print(peaks)
     f1,f2 = get_peak_bounds(peak)
     region,region_ppm = spectrum.get_region(f2,f1)
 
@@ -37,30 +40,33 @@ if __name__ == "__main__":
     #region_ppm_f2 = np.vstack([region_ppm[1] for _ in region[0,0,:]])
 
     
-    X = np.array(region_ppm[0])
-    print X.shape
-    Y = np.array(region_ppm[1])
-    print Y.shape
-    Z = region[0].T
+    #X = np.array(region_ppm[0])
+    #print(X.shape)
+    #Y = np.array(region_ppm[1])
+    #print(Y.shape)
+    #Z = region[0].T
     
-    X,Y = np.meshgrid(*region_ppm)
-    print X.shape,Y.shape,Z.shape
-    print Z.ndim    
-    peaks = peakpick.pick(Z, 1e6)
-    print peaks
-    params = [[(x, x_lw),(y, y_lw)] for x, x_lw, y, y_lw in zip(peaks['X_AXIS'], peaks['X_LW'], peaks['Y_AXIS'], peaks['Y_LW'])]
-    print params
-    lineshapes = ["l","l"]
-    params_best, amp_best, iers = linesh.fit_NDregion(Z,lineshapes,params,peaks["VOL"])
-    print params_best
+    #X,Y = np.meshgrid(*region_ppm)
+    #print(X.shape,Y.shape,Z.shape)
+    #print(Z.ndim)
+    #peaks = peakpick.pick(region, 1e5)
+    #print("peaks")
+    #print(peaks)
+    #params = [[(x, x_lw),(y, y_lw)] for x, x_lw, y, y_lw in zip(peaks['X_AXIS'], peaks['X_LW'], peaks['Y_AXIS'], peaks['Y_LW'])]
+    #print(params)
+    #lineshapes = ["l","l"]
+    #params_best, amp_best, iers = linesh.fit_NDregion(Z,lineshapes,params,peaks["VOL"])
+    #print(params_best)
 
     # simulate the spectrum
-    sdata = linesh.sim_NDregion(Z.shape, lineshapes, params_best, amp_best)
-    print sdata.shape
+    #sdata = linesh.sim_NDregion(Z.shape, lineshapes, params_best, amp_best)
+    #print(sdata.shape)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot_wireframe(X,Y,Z,lw="2")
-    ax.plot_wireframe(X,Y,sdata,color="r")
+    
+    #ax.plot_wireframe(X,Y,sdata,color="r")
+#    ax.scatter(peaks['X_AXIS'],peaks['Y_AXIS'])
     plt.show()
 
     

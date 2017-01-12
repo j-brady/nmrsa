@@ -1,8 +1,9 @@
 """ Functions for estimating errors in fitting nmr data """
+import sys
 import numpy as np
 #import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-from global_fitting import residual, resample
+from .global_fitting import residual, resample
 from lmfit import minimize
 
 #np.random.seed(1987)
@@ -22,6 +23,8 @@ def gen_data(array,sigma=0.1):
     """ 
         Generate array with noise added using np.random.normal
     """
+    print("sigma")
+    print(sigma)
     array_len = len(array)
     t = np.linspace(0,1,array_len)
     noise = np.random.normal(0,sigma,array_len)
@@ -29,7 +32,13 @@ def gen_data(array,sigma=0.1):
     return t,data_w_noise
 
 
-def monte_carlo(func,x,popt,raw_y_vals,iterations=200):
+def redchi(f,x,popt,raw_y_vals,yerrs):
+    residuals = (f(x,*popt) - raw_y_vals)/yerrs
+    N = len(x)
+    n = len(popt)
+    return sum(residuals**2)/(N-n)
+
+def monte_carlo(func,x,popt,raw_y_vals,iterations=200,red_chi_sqrs=False,yerrs=None):
     """ 
         Monte Carlo error estimation. Standard deviation of raw_y_vals from y_vals generated using 
         optimised fitting parameters is used to add noise to the simulated y_vals which are then fitted
@@ -49,16 +58,31 @@ def monte_carlo(func,x,popt,raw_y_vals,iterations=200):
 
     fit_y_vals = func(x,*popt)
     #plt.plot(x,fit_y_vals)
-    std = np.sqrt(np.square(raw_y_vals-fit_y_vals)/len(x))
+    std = sum(np.abs(raw_y_vals-fit_y_vals))/len(x)
     fit_params = []
+
+    if red_chi_sqrs and yerrs is not None:
+        red_chis = []
+    if red_chi_sqrs and yerrs is None:
+        print("You need to have the errors in y to calculate chis", sys.exc_info()[0])
+        raise
 
     for _ in range(iterations):
         t,sim_y_vals = gen_data(fit_y_vals,sigma=std)
         popt,pcov = curve_fit(func,x,sim_y_vals,popt)
         #plt.plot(x,sim_y_vals,"o")
         fit_params.append(popt)
-                                                
-    return np.array(fit_params)
+
+        # Calucalate chi_squares
+        if red_chi_sqrs:
+            red_chis.append(redchi(func,x,popt,raw_y_vals,yerrs))
+
+
+    if red_chi_sqrs:                                            
+        return np.array(fit_params), np.array(red_chis)
+
+    else:
+        return np.array(fit_params)
 
 def monte_carlox(func,x,p,y,std_x,y_err=None,global_fit=False,lmfit=True,iterations=200):
     """ 

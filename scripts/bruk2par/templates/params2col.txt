@@ -1,0 +1,61 @@
+{% block content -%}
+{% for k in dic.keys() -%} 
+{% if k == "acqus" -%}
+-----------------------------------------
+               {{ k }}
+-----------------------------------------
+ZGOPTNS = {{ dic[k].ZGOPTNS }}
+NS = {{ dic[k].NS }}
+PULPROG = {{ dic[k].PULPROG }}
+pwh = {{ dic[k].P[1] }} us
+d1 = {{ dic[k].D[1] }} s
+TD = {{ dic[k].TD }}
+DW = {{ dic[k].DW }}
+DE = {{ dic[k].DE }}
+{% if pp_vars["NOE_mix "] -%}
+NOE_mix = {{dic["acqus"]["D"][pp_vars["NOE_mix "].strip()[1:]|int]}}
+{% endif %}
+{%- for i in cpdprg -%}
+{{"%6s %10s"%("CPDPRG"+i[0]|string,i[1])}}
+{% endfor -%}
+{% else -%}
+-----------------------------------------
+               {{ k }}
+-----------------------------------------
+{{"%10s = %8.3f"%("SW",dic[k].SW_h) }}
+{{"%10s = %8.3f"%("SF",dic[k].SFO1) }}
+{{"%10s = %s"%("NUC",dic[k].NUC1) }}
+{{"%10s = %8.3f"%("Offset", dic[k].O1) }}
+{{"%10s = %s"%("TD",dic[k].TD) }}
+{% if dic[k].NUC1 == "15N" -%}
+{{"%10s = %.2f %3s"% ("pwn",dic["acqus"]["P"][pp_vars["pwn"].strip()[1:]|int],"us") }}
+{% elif dic[k].NUC1 == "1H" -%}
+{{"%10s = %.2f %3s"%("pwh", dic["acqus"]["P"][pp_vars["pwh"].strip()[1:]|int],"us") }}
+{% elif dic[k].NUC1 == "13C" -%}
+{{"%10s = %.2f %3s"%("pwh", dic["acqus"]["P"][pp_vars["pwc"].strip()[1:]|int], "us") }}
+{% endif -%}
+{% endif -%}
+{% endfor -%}
+-----------------------------------------  -----------------------------------------
+       All other pulse lengths:                          Power levels:
+-----------------------------------------  -----------------------------------------
+{% for i in pws -%}                                   
+{{"%10s %8.3f"%(i[0]+" =",i[2])}}                            {{"%10s %8.3f dB,%8.3f W"%("PLW"+i[1]|string+" =",i[4],i[3]) }} 
+{% endfor -%}
+-----------------------------------------
+            Shape pulses:
+-----------------------------------------
+{% for i in shape_pulses -%}
+sp{{i}} = {{dic["acqus"]["SPNAM"][i]}}
+{% endfor -%}
+-----------------------------------------
+             Gradients:
+-----------------------------------------
+{{"%4s%6s%6s%6s" % ("G","X","Y","Z")}}
+{% for i in grads -%}
+{%- if (i[1]|int == 0) and (i[2]|int == 0) and (i[3]|int == 0) -%}
+{%- else -%}
+{{"%4s%6s%6s%6s" % (i[0],i[1],i[2],i[3])}}
+{%- endif %}
+{% endfor -%}
+{% endblock -%}

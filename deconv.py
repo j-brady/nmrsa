@@ -9,7 +9,7 @@ from nmrsa.global_fitting import residual
 
 np.random.seed(1987)
 
-def exp_dec(Z,d,npoints=6):
+def test_exp_dec(Z,d,npoints=6):
     t = np.arange(npoints)
     ints = []
     for t_i in t:
@@ -84,7 +84,6 @@ def get_params(params,name):
     return ps, ps_err
 
 
-
 if __name__ == "__main__":
     
     #mod = GaussianModel(prefix="g1_")
@@ -127,7 +126,7 @@ if __name__ == "__main__":
                   [12,1,1,0,0]]
 
     test_data, test_data_noise = make_test_peaks(gauss2D,(X,Y),test_peaks,sigma=0.3)
-    exp_test_data = exp_dec(test_data_noise,.5,6)
+    exp_test_data = test_exp_dec(test_data_noise,.5,6)
     print(exp_test_data.shape)
 
     peaks = [["g1_",10,1,1,1,1],
@@ -174,6 +173,11 @@ if __name__ == "__main__":
     t = np.arange(6)
 
     for i in range(len(exp_test_data)):
+        mod = ExponentialModel()
+        pars = mod.guess(amps[:,i],x=t)
+        fit = mod.fit(amps[:,i],pars,x=t)
 
         plt.errorbar(t,amps[:,i],yerr=amps_std[:,i],fmt="ro")
+        plt.plot(t,fit.best_fit,"k--")
+
         plt.show()

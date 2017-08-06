@@ -108,7 +108,7 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
                 if T_diff > 1.0 or T_diff < 0.02:
                     raise ValueError("Are you sure you chose the right T_diff value? T_diff = %f s"%T_diff)
                 delta  = param_dic['acqus']['P'][pulse]/1e6 # convert from us to s
-                if delta > 0.005 or delta < 0.0005:
+                if delta > 0.005 or delta < 0.0001:
                     raise ValueError("Are you sure you chose the right delta value? delta = %f s"%delta)
                 fit = Diffusion(T_diff=T_diff, delta=delta, Dtype=v["type"], bipolar=v["bipolar"])
             else:

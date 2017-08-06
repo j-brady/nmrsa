@@ -39,12 +39,31 @@ def write_latex(string,fname="output.tex"):
     with open(fname,"a") as f:
         f.write("%s \n"% string)
 
+def drop_inds(array,inds):
+    """ Function to remove data points by index
+        
+        Keyword arguments:
+        array -- numpy array
+        inds  -- list of indices of data points that you wish to drop
+
+        Returns:
+        np.array 
+
+        Note:
+        creates 1d boolean array and sets supplied list of indices to False
+        then boolean index applied to array
+    """
+    bools = np.ones(len(array),dtype=np.bool)
+    bools[inds]=False
+    array = array[bools]
+    return array
+
 def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
     table = {}
     outfile.write("D\tErr\tT_diff\tDelta\tFile\tZGOPTNS\n")
     for k,v in yaml_dict.iteritems():
         k = k.replace("_","-")
-        print "this is k %s" %k
+        #print("this is k %s" %k)
 
         run_pipe_script(v["fid.com"],v["dirs"])
         run_pipe_script(v["ft.com"],v["dirs"])
@@ -85,11 +104,34 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
             
                 areas = np.array([integrate(i) for i in regions])
 
-            _areas = areas
-            I0 = areas[0]
-            print I0
-            areas = areas/I0
-            I0 = areas[0]
+
+            # Drop selected points here 
+            drop_points = v.get("drop_points",[])
+            if type(drop_points) is list and len(drop_points) >= 1:
+                areas = drop_inds(areas,drop_points)
+                _areas = areas
+                _g2s = drop_inds(g2s,drop_points)
+                #print(regions.shape,"regions")
+                regions = drop_inds(regions,drop_points)
+                #print(regions.shape,"regions")
+                I0 = np.argmax(areas)
+                I0 = areas[I0]
+                #print(areas.shape,"SHAPE")
+                areas = areas/I0
+                #print(areas)
+                I0 = areas[0]
+            else:
+                I0 = np.argmax(areas)
+                I0 = areas[I0]
+                #I0 = areas[0]
+                _areas = areas
+                _g2s = g2s
+                #print(I0)
+                areas = areas/I0
+                #print(areas)
+                I0 = areas[0]
+                #print(I0)
+            # initial    
             D = 1e-10
             
             colormap = plt.cm.winter_r
@@ -116,27 +158,28 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
                 T_diff = v["T_diff"]
                 delta  = v["delta"]
                 fit = Diffusion(T_diff=T_diff, delta=delta, Dtype=v["type"], bipolar=v["bipolar"])
-
-            popt, pcov = curve_fit(fit.func, g2s, areas,[I0,D])
+            #print(_g2s.shape,areas.shape,"g2s and areas")
+            #print(_g2s)
+            popt, pcov = curve_fit(fit.func, _g2s, areas,[I0,D])
             perr = np.sqrt(np.diag(pcov))
             
             ZGOPTNS = param_dic['acqus']['ZGOPTNS']
             tex = " %.3e & $\pm$ %.3e & %.3f & %.3f & %s"%(popt[1], perr[1], T_diff*1000., delta*1000, ft)
             out = " %.3e\t%.3e\t%.6f\t%.6f\t%s\t%s\n"%(popt[1], perr[1], T_diff, delta, ft, ZGOPTNS)
             data_dirs = [ft for _ in _areas]
-            integral = pd.DataFrame({"Integral":_areas,"Normalised":areas,"G":np.sqrt(g2s),"G^2":g2s,"expt":data_dirs})
+            integral = pd.DataFrame({"Integral":_areas,"Normalised":areas,"G":np.sqrt(_g2s),"G^2":_g2s,"expt":data_dirs})
             integrals = integrals.append(integral,ignore_index=True)
 
             rows.append(tex)
             outfile.write(out)
-            plot_fit(axes,g2s,areas,regions,region_ppm,fit.func,popt)
+            plot_fit(axes,_g2s,areas,regions,region_ppm,fit.func,popt)
 
             #plt.suptitle("%s:%s\nD=%8.3e $\pm$%.3e"%(k,ft,popt[1],perr[1]))
             plt.suptitle("T_diff = %f, delta = %f:%s\nD=%8.3e $\pm$%.3e: ZGOPTNS=%s"%(T_diff, delta, ft, popt[1], perr[1], ZGOPTNS))
             pdf.savefig()
             plt.close()
             
-            print "this is k NOW %s"%k
+            #print("this is k NOW %s"%k)
             table[k]=rows
     outfile.close()
     

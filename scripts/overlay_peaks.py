@@ -35,6 +35,7 @@
 #                                                                      #
 ########################################################################
 import sys
+import os
 import yaml
 import argparse
 import nmrglue as ng
@@ -114,6 +115,15 @@ def plot_overlay(ax,hmqc,peak,extent,cm=Blues_r,contour_start=1e7,
     ax.set_ylim(y2,y1)
     ax.set_xlim(x2,x1)
 
+def output_dic():
+    # make dic for data output
+    dic = {"Num": [], "H": [], "C": [],
+           "ref_C_ppm": [], "ref_H_ppm": [],
+           "comp_C_ppm": [], "comp_H_ppm": [],
+           "dC": [], "dH": [], "dC_hz": [],
+           "dH_hz": [],"comp": []}
+    return dic
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Plot overlays of single peaks to compare chemical shifts')
     parser.add_argument('--yaml','-y',default="params.yml",help="YAML file containing parameters for running script. See script header for details.",type=str)
@@ -124,6 +134,7 @@ if __name__ == "__main__":
     yaml_file.close()
     general_params = params["general"]
     outname = general_params.get("outname","overlays.pdf")
+    oname,pdf = os.path.splitext(outname)
     reference_params = params["reference"]
     comparison_list = params["comparison"]
     # read reference peak list
@@ -160,6 +171,11 @@ if __name__ == "__main__":
     comp_cnum = [int(i["contour_num"]) for i in comparison_list]
     comp_cms = [cm_dict[i["cm"]] for i in comparison_list]
     show_hzs = [i["show_hz"] for i in comparison_list]
+    # output files for data 
+    outfiles = [open(oname+str(i)+".txt","w") for i in range(1,len(comp_spectra)+1)]
+    header = "%8s %8s %8s %8s %8s %8s %8s %8s %8s %8s %8s %8s\n"%\
+            ("Num","H","C","refHppm","refCppm","Hppm_2","Cppm_2","dh","dc","dh_hz","dc_hz","comp")
+    [i.write(header) for i in outfiles]
     for i,ax in zip(ref_peaks.index,axes):
         i = ref_peaks.ix[i]
         i_num = i["Num"]
@@ -179,15 +195,19 @@ if __name__ == "__main__":
                 contour_start=contour_start,
                 contour_num=contour_num,
                 label=label)
-
+        outline = "%8d %8s %8s %8.3f %8.3f"%(i_num,i_H,i_C,h_ppm_1,c_ppm_1)
         #for c_peak,c_spec,c_lab,c_cs,c_cnum,c_cm in zip_compare:
-        for c_peak,c_spec,c_lab,c_cs,c_cnum,c_cm,show_hz in zip(comp_peaks,comp_spectra,comp_labels,comp_cs,comp_cnum,comp_cms,show_hzs):
+        for c_peak,c_spec,c_lab,c_cs,c_cnum,c_cm,show_hz,out in zip(comp_peaks,comp_spectra,comp_labels,comp_cs,comp_cnum,comp_cms,show_hzs,outfiles):
             c_peak = clean_sort(c_peak)
             peak = c_peak[(c_peak["Num"]==i_num) & (c_peak.H==i_H) & (c_peak.C==i_C)]
             if peak.empty:
                 print("No peak for %d"%i_num)
+                outline_plus = outline+"%8s %8s %8s %8s %8s %8s %8s\n"%\
+                        ("NaN","NaN","NaN","NaN","NaN","NaN","NaN") 
             elif len(peak)>1:
                 print("Duplicated for %d"%i_num)
+                outline_plus = outline+"%8s %8s %8s %8s %8s %8s %8s\n"%\
+                        ("NaN","NaN","NaN","NaN","NaN","NaN","NaN") 
             else:
                 dc = float(i["13C"] - peak["13C"])
                 dh = float(i["1H"] - peak["1H"])
@@ -196,15 +216,23 @@ if __name__ == "__main__":
                 c_ppm_2 = peak["13C"]
                 h_ppm_2 = peak["1H"]
                 comp = np.sqrt(dc_hz**2+dh_hz**2)
-                print(peak)
+                #print(peak)
+                #print(dc,dh,dc_hz,dh_hz,c_ppm_1,h_ppm_1,c_ppm_2,h_ppm_2)
+                outline_plus = outline+"%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n"\
+                        %(h_ppm_2,c_ppm_2,dh,dc,dh_hz,dc_hz,comp) 
                 plot_overlay(ax,c_spec,peak,extent,cm=c_cm,contour_start=c_cs,
                         contour_num=c_cnum,label=c_lab)
-            if show_hz:
-                ax.text(0.1,0.1,"%.1f Hz"%(comp),transform=ax.transAxes,
-                    bbox=dict(facecolor='yellow', alpha=0.5))
+                if show_hz:
+                    ax.text(0.1,0.1,"%.1f Hz"%(comp),transform=ax.transAxes,
+                        bbox=dict(facecolor='yellow', alpha=0.5))
+
+            out.write(outline_plus)
         ax.set_title("%d - %s"%(i["Num"],i.H))
         ax.set_ylabel("$^{13}$C ppm")
         ax.set_xlabel("$^{1}$H ppm")
         ax.legend(fontsize=8)
+    # close outfiles
+    [o.close() for o in outfiles]
     plt.tight_layout()
     plt.savefig(outname)
+

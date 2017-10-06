@@ -48,9 +48,9 @@ if sys.version_info[0]==2:
     print("using python 2")
 
 import matplotlib.pyplot as plt
-from matplotlib.cm import Blues_r,Reds_r,Greens_r
+from matplotlib.cm import Blues_r,get_cmap
 
-cm_dict = {"Blues_r":Blues_r,"Reds_r":Reds_r,"Greens_r":Greens_r}
+#cm_dict = {"Blues_r":Blues_r,"Reds_r":Reds_r,"Greens_r":Greens_r,"Oranges_r":Oranges_r}
 
 def clean_sort(df):
     # clean and sort data by Num
@@ -73,7 +73,7 @@ class Hmqc:
         self.ppm_1h_0, self.ppm_1h_1 = self.uc_1h.ppm_limits()
 
 def plot_overlay(ax,hmqc,peak,extent,cm=Blues_r,contour_start=1e7,
-        contour_factor=1.2,contour_num=1,label=""):
+        contour_factor=1.2,contour_num=1,label="",**kwargs):
     """ Function to plot spectral overlays
         
         Function arguments:
@@ -106,14 +106,42 @@ def plot_overlay(ax,hmqc,peak,extent,cm=Blues_r,contour_start=1e7,
 
     # calculate contour levels
     x1,x2,y1,y2 = extent
+    # estimate start contour
+    contour_start = estimate_contour_start(hmqc,peak)
     cl = contour_start * contour_factor ** np.arange(contour_num) 
-    ax.contour(slice, cl, cmap=cm, 
-		extent=(x2,x1,y2,y1))
-    # hack for legend
-    ax.plot(h1,c13,"o",color=cm(1))
-    ax.plot([],[],"-",label=label,color=cm(1))
+    if "colors" in kwargs.keys():
+        ax.contour(slice, cl, 
+                    extent=(x2,x1,y2,y1),**kwargs)
+        ax.plot(h1,c13,"o",color=kwargs["colors"][0])
+        ax.plot([],[],"-",label=label,color=kwargs["colors"][0])
+    else:
+        ax.contour(slice, cl, cmap=cm, 
+                    extent=(x2,x1,y2,y1),**kwargs)
+        # hack for legend
+        ax.plot(h1,c13,"o",color=cm(1))
+        ax.plot([],[],"-",label=label,color=cm(1))
     ax.set_ylim(y2,y1)
     ax.set_xlim(x2,x1)
+
+def estimate_contour_start(hmqc,peak,extent=[5,5],cutoff=0.6):
+    """ Estimate contour_start parameter for contour plot 
+    
+        Arguments:
+        hmqc -- Hmqc class object
+        peak -- pandas Series object containing peak information
+        extent -- half width of box used to find maximum peak height
+        cutoff -- fraction of peak height at which contours start
+
+        Returns:
+        cs -- contour start value
+    """
+    data = hmqc.data
+    x,y = hmqc.uc_1h("%f ppm"%float(peak["1H"])),hmqc.uc_13c("%f ppm"%float(peak["13C"]))
+    slice = data[y-extent[0]:y+extent[0]+1,x-extent[1]:x+extent[1]+1]
+    maximum = slice.max()
+    cs = maximum*cutoff
+    #print(maximum,cs)
+    return cs
 
 def output_dic():
     # make dic for data output
@@ -159,17 +187,17 @@ if __name__ == "__main__":
     height = general_params["height"]
     width = general_params["width"]
     # compare spectra and overlay
-    contour_start = float(reference_params["contour_start"])
-    contour_num = int(reference_params["contour_num"])
+    #contour_start = float(reference_params["contour_start"])
+    contour_num = int(reference_params.get("contour_num",10))
     label = reference_params["label"]
-    cm = cm_dict[reference_params["cm"]]
+    cm = get_cmap(reference_params["cm"])
     # comparison_peaks
     comp_peaks =[pd.read_table(i["peaklist"],comment="#") for i in comparison_list]
     comp_spectra = [Hmqc(i["spectrum"]) for i in comparison_list]
     comp_labels = [i["label"] for i in comparison_list]
-    comp_cs = [float(i["contour_start"]) for i in comparison_list]
-    comp_cnum = [int(i["contour_num"]) for i in comparison_list]
-    comp_cms = [cm_dict[i["cm"]] for i in comparison_list]
+    #comp_cs = [float(i["contour_start"]) for i in comparison_list]
+    comp_cnum = [int(i.get("contour_num",10)) for i in comparison_list]
+    comp_cms = [get_cmap(i["cm"]) for i in comparison_list]
     show_hzs = [i["show_hz"] for i in comparison_list]
     # output files for data 
     outfiles = [open(oname+str(i)+".txt","w") for i in range(1,len(comp_spectra)+1)]
@@ -191,13 +219,16 @@ if __name__ == "__main__":
         extent = [minH,maxH,minC,maxC]
         # plot reference
         #print(type(float(reference_params["contour_start"])))
+        # uses estimated contours
+        contour_start = None
         plot_overlay(ax,ref_spectrum,i,extent,cm=cm,
                 contour_start=contour_start,
                 contour_num=contour_num,
                 label=label)
         outline = "%8d %8s %8s %8.3f %8.3f"%(i_num,i_H,i_C,h_ppm_1,c_ppm_1)
         #for c_peak,c_spec,c_lab,c_cs,c_cnum,c_cm in zip_compare:
-        for c_peak,c_spec,c_lab,c_cs,c_cnum,c_cm,show_hz,out in zip(comp_peaks,comp_spectra,comp_labels,comp_cs,comp_cnum,comp_cms,show_hzs,outfiles):
+        #for c_peak,c_spec,c_lab,c_cs,c_cnum,c_cm,show_hz,out in zip(comp_peaks,comp_spectra,comp_labels,comp_cs,comp_cnum,comp_cms,show_hzs,outfiles):
+        for c_peak,c_spec,c_lab,c_cnum,c_cm,show_hz,out in zip(comp_peaks,comp_spectra,comp_labels,comp_cnum,comp_cms,show_hzs,outfiles):
             c_peak = clean_sort(c_peak)
             peak = c_peak[(c_peak["Num"]==i_num) & (c_peak.H==i_H) & (c_peak.C==i_C)]
             if peak.empty:
@@ -220,6 +251,7 @@ if __name__ == "__main__":
                 #print(dc,dh,dc_hz,dh_hz,c_ppm_1,h_ppm_1,c_ppm_2,h_ppm_2)
                 outline_plus = outline+"%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n"\
                         %(h_ppm_2,c_ppm_2,dh,dc,dh_hz,dc_hz,comp) 
+                c_cs = None
                 plot_overlay(ax,c_spec,peak,extent,cm=c_cm,contour_start=c_cs,
                         contour_num=c_cnum,label=c_lab)
                 if show_hz:

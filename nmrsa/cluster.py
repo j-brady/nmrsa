@@ -1,6 +1,6 @@
 import numpy as np
 
-def distance((x1,y1),(x2,y2)):
+def distance(x1_y1,x2_y2):
     """Calculates distance between two coordinates
 
     Arguments:
@@ -11,7 +11,8 @@ def distance((x1,y1),(x2,y2)):
     distance
 
     """
-
+    x1, y1 = x1_y1
+    x2, y2 = x2_y2
     distance = np.sqrt((x1-x2)**2+(y1-y2)**2)
     return distance
 
@@ -56,9 +57,9 @@ def find_clusters(coords,threshold=0.03,indices=None):
                     sear.append(j)
 
                     coords.remove(j)
-#            print sear
+#            print(sear)
         clusters.append(clu)
-#    print clusters
+#    print(clusters)
 
     return clusters
 
@@ -106,7 +107,7 @@ if __name__=="__main__":
 
     indices = list(peaks.Number)#[:50]
     clusters = find_clusters(coords,0.03,indices)
-    print clusters
+    print(clusters)
 
     makeFudaList(clusters)
 
@@ -115,7 +116,7 @@ if __name__=="__main__":
     for peak in clusters:
         #print list(peak)
         coords = [[i[0],i[1][0],i[1][1]] for i in peak]
-        print coords
+        print(coords)
         coords = np.vstack(coords)
         inds = coords[:,0]
         x = coords[:,1]*10. # Rescale

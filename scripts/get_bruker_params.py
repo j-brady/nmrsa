@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import nmrglue as ng
 
 dic,data = ng.fileio.bruker.read()

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 import os
 from math import log10
 import nmrglue as ng

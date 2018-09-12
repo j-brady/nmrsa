@@ -1,4 +1,3 @@
-#!/home/jbrady/venvs/py34/bin/python
 ########################################################################
 #                                                                      #
 # Script for plotting overlays of spectra for inspection of            #

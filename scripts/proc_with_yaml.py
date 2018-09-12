@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/home/jbrady/venvs/py34/bin/python
 import os
 import re
 import sys
@@ -42,10 +42,8 @@ def drop_inds(array,inds):
         Keyword arguments:
         array -- numpy array
         inds  -- list of indices of data points that you wish to drop
-
         Returns:
         np.array 
-
         Note:
         creates 1d boolean array and sets supplied list of indices to False
         then boolean index applied to array
@@ -58,7 +56,7 @@ def drop_inds(array,inds):
 def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
     table = {}
     outfile.write("D\tErr\tT_diff\tDelta\tFile\tZGOPTNS\n")
-    for k,v in yaml_dict.iteritems():
+    for k,v in yaml_dict.items():
         k = k.replace("_","-")
         #print("this is k %s" %k)
 
@@ -183,7 +181,7 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
     
     integrals.to_csv("integrals.txt",index=False,sep="\t")
     integrals.to_pickle("integrals.pkl")
-    for k,rows in table.iteritems():
+    for k,rows in table.items():
         table[k] = [val.replace("_","-") for val in rows]
     return table
 

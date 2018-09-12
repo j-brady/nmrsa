@@ -1,7 +1,6 @@
 import nmrglue as ng
 import numpy as np
 import matplotlib.pyplot as plt
-from colormap import viridis,magma,plasma 
 
 """ My nmrglue functions """
 class OneD:
@@ -50,7 +49,7 @@ class Pseudo2D:
         self.region_ppm = self.ppm_scale[start_pts:end_pts+1]
 
         #colormap = plt.cm.winter_r
-        colormap = viridis
+        colormap = plt.cm.viridis
         #colormap = magma
         #colormap = plasma
         plt.rcParams['axes.color_cycle'] = [colormap(k) for k in np.linspace(0, 1, self.region.shape[0])]

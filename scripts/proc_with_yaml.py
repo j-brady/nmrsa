@@ -10,7 +10,6 @@ import subprocess as sp
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-import seaborn as sns
 import numpy as np
 import nmrglue as ng
 from scipy.optimize import curve_fit
@@ -22,8 +21,6 @@ from nmrsa.ng import get_region, normalise, integrate
 from nmrsa.fitting import Diffusion
 from nmrsa.runNMRPipe import run_pipe_script
 
-#sns.set_style("whitegrid")
-sns.set_style("ticks")
 
 def load_yaml(yaml_file):
     """ reads files containing YAML and converts to dictionary """
@@ -208,7 +205,6 @@ def plot_fit(axes,g2s,areas,regions,region_ppm,func,popt):
     ax3.set_ylabel(r"ln(I/I$_{0})$") 
     ax3.set_xlabel(r"G$^2$ $(G^2cm^{-2})$")
     
-    sns.despine()
 
 if __name__ == "__main__":
     """ Argument parser """

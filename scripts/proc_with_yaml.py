@@ -9,6 +9,7 @@ import yaml
 import subprocess as sp
 
 import matplotlib.pyplot as plt
+from cycler import cycler
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import nmrglue as ng
@@ -131,7 +132,7 @@ def run_proc(yaml_dict,g2s,pdf,outfile,read_params=False,delay=9,pulse=53):
             
             colormap = plt.cm.winter_r
             #colormap = plt.cm.inferno
-            plt.rcParams['axes.color_cycle'] = [colormap(i) for i in np.linspace(0, 1, regions.shape[0])]
+            plt.rcParams['axes.prop_cycle'] = cycler(color=[colormap(i) for i in np.linspace(0, 1, regions.shape[0])])
             fig = plt.figure(figsize=(12,6))
             ax1 = fig.add_subplot(121)
             ax2 = fig.add_subplot(122)

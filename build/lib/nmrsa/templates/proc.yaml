@@ -7,13 +7,14 @@
     {% for dir in directories -%}
         - "{{ dir }}"
     {% endfor %}
-    filename: {{ filename }}
-    fid.com: {{ fid_com }}
-    ft.com: {{ ft_com }}
-    type: {{ type }}
-    bipolar: {{ bipolar }}
-    start_ppm: {{ start_ppm }}
-    end_ppm: {{ end_ppm }}
+    filename: {{ filename }} {{ "#" }} name of your NMRPipe data file e.g test.ft
+    fid.com: {{ fid_com }} {{ "#" }} name of your pipe conversion file
+    ft.com: {{ ft_com }} {{ "#" }} name of your pipe proc file
+    type: {{ type }} {{ "#" }} either 1Q, 2Q or 3Q
+    bipolar: {{ bipolar }} {{ "#" }} are you using bipolar gradients?
+    start_ppm: {{ start_ppm }} {{ "#" }} downfield ppm value
+    end_ppm: {{ end_ppm }} {{ "#" }} upfield ppm value
     {{ "#" }}T_diff: {{ T_diff }}
     {{ "#" }}delta: {{ delta }}
+    {{ "#" }}drop_points: [] {{ "#" }} this is a list of points you want to skip
 {% endblock %}

@@ -11,13 +11,13 @@ def run_pipe_script(script,dirs):
     """ Run i.communicate() for each element in proc to see shell output """
     for d in dirs:
         print("Processing: %s"%d)
-        sp.Popen("%s %s"%(script,d),shell=True).wait()
+        sp.Popen("csh -c '%s %s'"%(script,d),shell=True).wait()
 
 def run_pipe_2args(script,dirs,arg2):
     """ Run i.communicate() for each element in proc to see shell output """
     for d in dirs:
         print("Processing: %s"%d)
-        sp.Popen("%s %s %s"%(script,d,arg2),shell=True).wait()
+        sp.Popen("csh -c '%s %s %s'"%(script,d,arg2),shell=True).wait()
         
 #os.path.join ...
 """ |& will pass both stdout and stderr through pipe. Normally stderr is not piped. """ 
@@ -39,4 +39,4 @@ if __name__  == "__main__":
     print("All done!")
     addNMR = "comb_spectra.sh"
     print("Adding spectra using %s" % addNMR)
-    sp.Popen("./%s" % addNMR,shell=True)
+    sp.Popen("csh -c './%s'" % addNMR,shell=True)
